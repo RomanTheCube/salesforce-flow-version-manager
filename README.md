@@ -2,6 +2,22 @@
 
 A Salesforce admin tool for bulk viewing and deleting inactive flow versions. Solves the limitation of Salesforce's standard UI, which only allows deleting flow versions one at a time.
 
+## Disclaimer
+
+**USE AT YOUR OWN RISK.** This software is provided "as is", without warranty of any kind, express or implied. The author(s) assume no responsibility or liability for any errors, omissions, data loss, system failures, or any other damages that may result from the use of this tool.
+
+By using this software, you acknowledge that:
+
+- **Deleting flow versions is permanent and cannot be undone**
+- You are solely responsible for verifying which versions you delete
+- You should always test in a sandbox environment before using in production
+- You should maintain backups of critical flows before performing bulk deletions
+- The author(s) are not liable for any direct, indirect, incidental, or consequential damages
+
+**This tool is not an official Salesforce product and is not supported by Salesforce.**
+
+---
+
 ## Features
 
 - View all flows in your org with version counts
