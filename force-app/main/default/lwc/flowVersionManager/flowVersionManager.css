@@ -1,0 +1,53 @@
+.flow-header {
+    cursor: pointer;
+    background-color: #f3f3f3;
+    transition: background-color 0.2s ease;
+}
+
+.flow-header:hover {
+    background-color: #e5e5e5;
+}
+
+.versions-container {
+    background-color: #fafafa;
+}
+
+.version-row {
+    border-bottom: 1px solid #e5e5e5;
+    transition: background-color 0.2s ease;
+}
+
+.version-row:hover {
+    background-color: #f0f0f0;
+}
+
+.version-row:last-child {
+    border-bottom: none;
+}
+
+.version-active {
+    background-color: #e8f4e8;
+}
+
+.version-active:hover {
+    background-color: #d8ead8;
+}
+
+.slds-badge_success {
+    background-color: #2e844a;
+    color: white;
+}
+
+.slds-progress-bar {
+    height: 8px;
+    background-color: #e5e5e5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.slds-progress-bar__value {
+    display: block;
+    height: 100%;
+    background-color: #0176d3;
+    transition: width 0.3s ease;
+}

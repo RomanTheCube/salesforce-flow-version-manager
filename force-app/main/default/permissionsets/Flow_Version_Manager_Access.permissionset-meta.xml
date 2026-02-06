@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Grants access to the Flow Version Manager tool for bulk viewing and deleting flow versions. Assign this permission set to administrators who need to manage flow versions.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Flow Version Manager Access</label>
+    <customPermissions>
+        <enabled>true</enabled>
+        <name>Flow_Version_Manager_Access</name>
+    </customPermissions>
+</PermissionSet>

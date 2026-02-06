@@ -1,0 +1,23 @@
+<apex:page showHeader="true" sidebar="false" lightningStylesheets="true">
+    <apex:includeLightning />
+
+    <div id="flowVersionManagerContainer" style="height: 100%;"></div>
+
+    <script>
+        // Store session ID for Apex to use
+        var sessionId = '{!$Api.Session_ID}';
+
+        $Lightning.use("c:flowVersionManagerApp", function() {
+            $Lightning.createComponent(
+                "c:flowVersionManager",
+                {
+                    sessionId: sessionId
+                },
+                "flowVersionManagerContainer",
+                function(cmp) {
+                    console.log("Flow Version Manager component loaded");
+                }
+            );
+        });
+    </script>
+</apex:page>

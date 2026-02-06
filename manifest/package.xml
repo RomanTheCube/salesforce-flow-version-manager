@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>FlowVersionManagerController</members>
+        <members>FlowVersionManagerControllerTest</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>flowVersionManager</members>
+        <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>flowVersionManagerApp</members>
+        <name>AuraDefinitionBundle</name>
+    </types>
+    <types>
+        <members>FlowVersionManagerPage</members>
+        <name>ApexPage</name>
+    </types>
+    <types>
+        <members>Flow_Version_Manager_Access</members>
+        <name>CustomPermission</name>
+    </types>
+    <types>
+        <members>Flow_Version_Manager_Access</members>
+        <name>PermissionSet</name>
+    </types>
+    <types>
+        <members>Flow_Version_Manager</members>
+        <name>FlexiPage</name>
+    </types>
+    <version>62.0</version>
+</Package>

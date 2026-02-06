@@ -1,0 +1,300 @@
+<template>
+    <!-- Access Denied State -->
+    <template lwc:if={accessDenied}>
+        <lightning-card title="Bulk Flow Version Manager">
+            <div class="slds-illustration slds-illustration_small slds-p-around_large">
+                <div class="slds-text-color_weak slds-text-align_center">
+                    <lightning-icon icon-name="utility:lock" size="large" variant="error"></lightning-icon>
+                    <h3 class="slds-text-heading_medium slds-m-top_medium">Access Denied</h3>
+                    <p class="slds-text-body_regular slds-m-top_small">
+                        You need the <strong>"Flow Version Manager Access"</strong> permission set to use this tool.
+                    </p>
+                    <p class="slds-text-body_small slds-m-top_x-small slds-text-color_weak">
+                        Contact your Salesforce Administrator to request access.
+                    </p>
+                </div>
+            </div>
+        </lightning-card>
+    </template>
+
+    <!-- Main Content -->
+    <template lwc:else>
+        <lightning-card title="Bulk Flow Version Manager" icon-name="standard:flow">
+            <!-- Header Actions -->
+            <div slot="actions">
+                <lightning-button
+                    variant="brand"
+                    label={deleteButtonLabel}
+                    onclick={handleDeleteClick}
+                    disabled={deleteDisabled}
+                    icon-name="utility:delete">
+                </lightning-button>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="slds-p-horizontal_medium slds-p-top_small">
+                <div class="slds-grid slds-gutters slds-wrap">
+                    <!-- Search -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12">
+                        <lightning-input
+                            type="search"
+                            label="Search Flows"
+                            placeholder="Search by flow name..."
+                            value={searchTerm}
+                            onchange={handleSearchChange}>
+                        </lightning-input>
+                    </div>
+                    <!-- Filter by Process Type -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                        <lightning-combobox
+                            name="processType"
+                            label="Process Type"
+                            value={filterType}
+                            placeholder="All Types"
+                            options={processTypeOptions}
+                            onchange={handleFilterTypeChange}>
+                        </lightning-combobox>
+                    </div>
+                    <!-- Filter by Status -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                        <lightning-combobox
+                            name="status"
+                            label="Status"
+                            value={filterStatus}
+                            placeholder="All Statuses"
+                            options={statusOptions}
+                            onchange={handleFilterStatusChange}>
+                        </lightning-combobox>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Bar -->
+            <div class="slds-p-around_medium slds-border_bottom">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <span class="slds-text-color_weak">
+                            <strong>{totalFlows}</strong> flows,
+                            <strong>{totalVersions}</strong> total versions
+                        </span>
+                        <template lwc:if={selectedCount}>
+                            <span class="slds-m-left_medium slds-text-color_success">
+                                <strong>{selectedCount}</strong> selected for deletion
+                            </span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <template lwc:if={isLoading}>
+                <div class="slds-p-around_large slds-align_absolute-center">
+                    <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- No Results -->
+            <template lwc:elseif={noResults}>
+                <div class="slds-p-around_large slds-text-align_center">
+                    <p class="slds-text-color_weak">No flows found matching your criteria.</p>
+                </div>
+            </template>
+
+            <!-- Flow List -->
+            <template lwc:else>
+                <div class="flow-list">
+                    <template for:each={filteredFlows} for:item="flow">
+                        <div key={flow.id} class="flow-definition slds-border_bottom">
+                            <!-- Flow Definition Header -->
+                            <div class="flow-header slds-p-around_small slds-grid slds-grid_vertical-align-center"
+                                 onclick={handleFlowToggle} data-flow-id={flow.id}>
+                                <div class="slds-col slds-size_1-of-12">
+                                    <lightning-icon
+                                        icon-name={flow.expandIcon}
+                                        size="x-small"
+                                        class="slds-m-right_x-small">
+                                    </lightning-icon>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12">
+                                    <span class="slds-text-title_bold">{flow.developerName}</span>
+                                    <template lwc:if={flow.namespacePrefix}>
+                                        <lightning-badge label={flow.namespacePrefix} class="slds-m-left_x-small"></lightning-badge>
+                                    </template>
+                                    <template lwc:if={flow.label}>
+                                        <span class="slds-text-body_small slds-text-color_weak slds-m-left_small">({flow.label})</span>
+                                    </template>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12 slds-text-align_center">
+                                    <lightning-badge label={flow.processTypeLabel}></lightning-badge>
+                                </div>
+                                <div class="slds-col slds-size_1-of-12 slds-text-align_center">
+                                    <lightning-badge label={flow.versionLabel}></lightning-badge>
+                                </div>
+                                <div class="slds-col slds-size_2-of-12 slds-text-align_right">
+                                    <template lwc:if={flow.versionsLoaded}>
+                                        <lightning-input
+                                            type="checkbox"
+                                            label="Select all inactive"
+                                            variant="label-hidden"
+                                            checked={flow.allInactiveSelected}
+                                            disabled={flow.hasNoInactive}
+                                            onchange={handleSelectFlowInactive}
+                                            data-flow-id={flow.id}
+                                            onclick={stopPropagation}>
+                                        </lightning-input>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Flow Versions (expandable) -->
+                            <template lwc:if={flow.isExpanded}>
+                                <div class="versions-container slds-p-left_large">
+                                    <!-- Loading versions -->
+                                    <template lwc:if={flow.isLoadingVersions}>
+                                        <div class="slds-p-around_medium slds-text-align_center">
+                                            <lightning-spinner alternative-text="Loading versions" size="small"></lightning-spinner>
+                                            <p class="slds-text-color_weak slds-m-top_small">Loading versions...</p>
+                                        </div>
+                                    </template>
+
+                                    <!-- Versions loaded -->
+                                    <template lwc:else>
+                                        <template for:each={flow.versions} for:item="version">
+                                            <div key={version.id} class={version.rowClass}>
+                                                <div class="slds-grid slds-grid_vertical-align-center slds-p-around_x-small">
+                                                    <!-- Checkbox -->
+                                                    <div class="slds-col slds-size_1-of-12">
+                                                        <lightning-input
+                                                            type="checkbox"
+                                                            label="Select version"
+                                                            variant="label-hidden"
+                                                            checked={version.isSelected}
+                                                            disabled={version.isActive}
+                                                            onchange={handleVersionSelect}
+                                                            data-version-id={version.id}>
+                                                        </lightning-input>
+                                                    </div>
+                                                    <!-- Version Number & Status -->
+                                                    <div class="slds-col slds-size_2-of-12">
+                                                        <span class="slds-text-title_bold">v{version.versionNumber}</span>
+                                                        <lightning-badge
+                                                            label={version.status}
+                                                            class={version.statusClass}>
+                                                        </lightning-badge>
+                                                    </div>
+                                                    <!-- Process Type -->
+                                                    <div class="slds-col slds-size_2-of-12">
+                                                        <span class="slds-text-body_small">{version.processTypeLabel}</span>
+                                                    </div>
+                                                    <!-- API Version -->
+                                                    <div class="slds-col slds-size_1-of-12">
+                                                        <span class="slds-text-body_small slds-text-color_weak">API {version.apiVersion}</span>
+                                                    </div>
+                                                    <!-- Last Modified -->
+                                                    <div class="slds-col slds-size_3-of-12">
+                                                        <span class="slds-text-body_small">
+                                                            Modified: {version.lastModifiedDateFormatted}
+                                                        </span>
+                                                    </div>
+                                                    <!-- Actions -->
+                                                    <div class="slds-col slds-size_3-of-12 slds-text-align_right">
+                                                        <lightning-button
+                                                            label="Flow Builder"
+                                                            variant="neutral"
+                                                            icon-name="utility:flow"
+                                                            onclick={handleOpenFlowBuilder}
+                                                            data-version-id={version.id}
+                                                            class="slds-m-right_x-small">
+                                                        </lightning-button>
+                                                        <lightning-button
+                                                            label="Details"
+                                                            variant="neutral"
+                                                            icon-name="utility:preview"
+                                                            onclick={handleOpenFlowRecord}
+                                                            data-flow-id={version.flowRecordId}>
+                                                        </lightning-button>
+                                                    </div>
+                                                </div>
+                                                <!-- Description (if exists) -->
+                                                <template lwc:if={version.description}>
+                                                    <div class="slds-p-horizontal_medium slds-p-bottom_x-small">
+                                                        <span class="slds-text-body_small slds-text-color_weak">
+                                                            {version.description}
+                                                        </span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Load More Button -->
+                <template lwc:if={hasMoreFlows}>
+                    <div class="slds-p-around_medium slds-text-align_center">
+                        <lightning-button
+                            label={loadMoreLabel}
+                            variant="neutral"
+                            onclick={handleLoadMore}
+                            disabled={isLoadingMore}>
+                        </lightning-button>
+                        <template lwc:if={isLoadingMore}>
+                            <lightning-spinner alternative-text="Loading more" size="small" class="slds-m-left_small"></lightning-spinner>
+                        </template>
+                    </div>
+                </template>
+            </template>
+        </lightning-card>
+
+        <!-- Delete Confirmation Modal -->
+        <template lwc:if={showDeleteModal}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                                onclick={handleCancelDelete}>
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title">Confirm Deletion</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template lwc:if={isDeleting}>
+                            <div class="slds-text-align_center">
+                                <lightning-spinner alternative-text="Deleting" size="medium"></lightning-spinner>
+                                <p class="slds-m-top_medium">{deletionProgressMessage}</p>
+                                <div class="slds-progress-bar slds-m-top_small" aria-valuemin="0" aria-valuemax="100" aria-valuenow={deletionProgress}>
+                                    <span class="slds-progress-bar__value" style={progressBarStyle}></span>
+                                </div>
+                            </div>
+                        </template>
+                        <template lwc:else>
+                            <p>Are you sure you want to delete <strong>{selectedCount}</strong> flow version(s)?</p>
+                            <p class="slds-text-color_error slds-m-top_small">
+                                <lightning-icon icon-name="utility:warning" size="x-small" variant="error"></lightning-icon>
+                                This action cannot be undone.
+                            </p>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <template lwc:if={isDeleting}>
+                            <!-- No buttons while deleting -->
+                        </template>
+                        <template lwc:else>
+                            <lightning-button label="Cancel" onclick={handleCancelDelete}></lightning-button>
+                            <lightning-button
+                                variant="destructive"
+                                label="Delete"
+                                onclick={handleConfirmDelete}
+                                class="slds-m-left_x-small">
+                            </lightning-button>
+                        </template>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </template>
+</template>
